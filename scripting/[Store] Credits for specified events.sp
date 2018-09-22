@@ -13,7 +13,7 @@ ConVar CSE_AmountHeadshot,
 		CSE_AmountAssists,
 		gc_sTag;
 
-char g_sTag[32], weapon[16];
+char g_sTag[32], weapon[32];
 	
 int g_AmountHeadshot,
 	g_AmountKnife,
