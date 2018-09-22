@@ -1,0 +1,34 @@
+"Phrases"
+{
+	"Knife Kill"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"		"{1} You earned {green}{2}{default} credits for {red}Knife{default} kill."
+	}
+	"Taser Kill"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"		"{1} You earned {green}{2}{default} credits for {red}Zeus{default} kill."
+	}
+	"Headshot Kill"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"		"{1} You earned {green}{2}{default} credits for {red}Headshot{default}."
+	}
+	"Assist Kill"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en" 		"{1} You earned {green}{2}{default} credits for {red}Assist{default} on a kill."
+	}
+	"MVP Kill"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en" 		"{1} You earned {green}{2}{default} credits for {red}MVP{default} on a kill."
+	}
+	"MVP Kill All"
+	{
+		"#format"	"{1:s},{2:s},{3:i}"
+		"en" 		"{1} {purple}{2}{default} earned {green}{3}{default} credits for being {red}MVP{default}."
+	}
+	
+}
