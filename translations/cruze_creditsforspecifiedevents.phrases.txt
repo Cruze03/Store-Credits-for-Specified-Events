@@ -5,10 +5,40 @@
 		"#format"	"{1:s},{2:i}"
 		"en"		"{1} You earned {green}{2}{default} credits for {red}Knife{default} kill."
 	}
+	"Backstab Knife Kill"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"		"{1} You earned {green}{2}{default} credits for {red}Backstab Knife{default} kill."
+	}
 	"Taser Kill"
 	{
 		"#format"	"{1:s},{2:i}"
 		"en"		"{1} You earned {green}{2}{default} credits for {red}Zeus{default} kill."
+	}
+	"HeGrenade Kill"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"		"{1} You earned {green}{2}{default} credits for {red}Grenade{default} kill."
+	}
+	"Flash Grenade Kill"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"		"{1} You earned {green}{2}{default} credits for {red}Flash{default} kill."
+	}
+	"Smoke Grenade Kill"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"		"{1} You earned {green}{2}{default} credits for {red}Smoke{default} kill."
+	}
+	"Molotov Grenade Kill"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"		"{1} You earned {green}{2}{default} credits for {red}Molotov/Incendiary{default} kill."
+	}
+	"Decoy Grenade Kill"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"		"{1} You earned {green}{2}{default} credits for {red}Decoy{default} kill."
 	}
 	"Headshot Kill"
 	{
