@@ -39,7 +39,7 @@ public Plugin myinfo =
 	name				= 	"[Store] Credits for specified events",
 	author			= 	"Cruze",
 	description		= 	"Credits for hs, knife, backstab knife, zeus, hegrenade, mvp, assists",
-	version			= 	"1.1",
+	version			= 	"1.11",
 	url				= 	"http://steamcommunity.com/profiles/76561198132924835"
 }
 
@@ -161,7 +161,7 @@ public void OnClientPutInServer(int client)
 }
 public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype)
 {
-	if (victim < 1 || victim > MaxClients || attacker < 1 || attacker > MaxClients)
+	if (victim < 1 || victim > MaxClients || attacker < 1 || attacker > MaxClients || GetClientTeam(attacker) == GetClientTeam(victim))
 		return Plugin_Continue;
 
 	GetClientWeapon(attacker, weapon, sizeof(weapon));
@@ -192,7 +192,12 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 
 	if(assister == attacker)
 		return;
-	
+
+	if(GetClientTeam(victim) == GetClientTeam(attacker))
+		return;
+
+	if(GetClientTeam(assister) == GetClientTeam(attacker))
+		return;
 
 	GetEventString(event, "weapon", weapon, sizeof(weapon));
 
