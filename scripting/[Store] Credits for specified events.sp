@@ -38,8 +38,8 @@ public Plugin myinfo =
 {
 	name				= 	"[Store] Credits for specified events",
 	author			= 	"Cruze",
-	description		= 	"Credits for hs, knife, backstab knife, zeus, hegrenade, mvp, assists",
-	version			= 	"1.11",
+	description		= 	"Credits for hs, knife, backstab knife, zeus, grenade, mvp, assists",
+	version			= 	"1.12",
 	url				= 	"http://steamcommunity.com/profiles/76561198132924835"
 }
 
@@ -196,9 +196,6 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	if(GetClientTeam(victim) == GetClientTeam(attacker))
 		return;
 
-	if(GetClientTeam(assister) == GetClientTeam(attacker))
-		return;
-
 	GetEventString(event, "weapon", weapon, sizeof(weapon));
 
 	if(StrContains(weapon, "knife") != -1 || StrContains(weapon, "knife_default_ct") != -1 || StrContains(weapon, "knife_default_t") != -1 || StrContains(weapon, "knife_t") != -1 || StrContains(weapon, "knifegg") != -1 || StrContains(weapon, "knife_flip") != -1 || StrContains(weapon, "knife_gut") != -1 || StrContains(weapon, "knife_karambit") != -1 || StrContains(weapon, "bayonet") != -1 || StrContains(weapon, "knife_m9_bayonet") != -1 || StrContains(weapon, "knife_butterfly") != -1 || StrContains(weapon, "knife_tactical") != -1 || StrContains(weapon, "knife_falchion") != -1 || StrContains(weapon, "knife_push") != -1 || StrContains(weapon, "knife_survival_bowie") != -1 || StrContains(weapon, "knife_ursus") != -1 || StrContains(weapon, "knife_gypsy_jackknife") != -1 || StrContains(weapon, "knife_stiletto") != -1 || StrContains(weapon, "knife_widowmaker") != -1)
@@ -282,8 +279,10 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 			CPrintToChat(attacker, "%t","Headshot Kill", g_sTag, g_iAmountHeadshot);
 		}
 	}
-	if(IsValidClient(assister) && g_iAmountAssists > 1)
+	if(IsValidClient(victim) && IsValidClient(assister) && g_iAmountAssists > 1)
 	{
+		if(GetClientTeam(assister) == GetClientTeam(victim))
+			return;
 		Store_SetClientCredits(assister, Store_GetClientCredits(assister) + g_iAmountAssists);
 			
 		//CPrintToChat(assister, "%s You earned {green}%i{default} credits for {red}Assist{default} on a kill.", g_sTag, g_iAmountAssists);
