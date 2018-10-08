@@ -7,7 +7,8 @@
 #include <sdkhooks>
 #include <store>
 
-ConVar gc_iAmountHeadshot, 
+ConVar gc_sToggleChatMsg,
+		gc_iAmountHeadshot, 
 		gc_iAmountKnife,
 		gc_iAmountBackstab,
 		gc_iAmountTaser,
@@ -21,6 +22,8 @@ ConVar gc_iAmountHeadshot,
 		gc_sTag;
 
 char g_sTag[32], weapon[32];
+
+bool g_sToggleChatMsg;
 	
 int g_iAmountHeadshot,
 	g_iAmountKnife,
@@ -39,7 +42,7 @@ public Plugin myinfo =
 	name				= 	"[Store] Credits for specified events",
 	author			= 	"Cruze",
 	description		= 	"Credits for hs, knife, backstab knife, zeus, grenade, mvp, assists",
-	version			= 	"1.12",
+	version			= 	"1.13",
 	url				= 	"http://steamcommunity.com/profiles/76561198132924835"
 }
 
@@ -49,6 +52,7 @@ public void OnPluginStart()
 	if(GetEngineVersion() != Engine_CSGO && GetEngineVersion() != Engine_CSS) 
 		SetFailState("Plugin supports CSS and CS:GO only.");
 	
+	gc_sToggleChatMsg		=	CreateConVar("sm_cse_chatmsg", 			"1", 		"Print credits messages to chat? 0 to disable.");
 	gc_iAmountHeadshot		=	CreateConVar("sm_cse_hsamount", 			"3", 		"Amount of credits to give to users headshotting enemy. 0 to disable.");
 	gc_iAmountKnife			=	CreateConVar("sm_cse_knifeamount", 		"10", 		"Amount of credits to give to users knifing enemy. 0 to disable.");
 	gc_iAmountBackstab		=	CreateConVar("sm_cse_backstabamount", 	"3", 		"Amount of credits to give to users backstab knifing enemy. 0 to disable.");
@@ -64,6 +68,7 @@ public void OnPluginStart()
 	AutoExecConfig(true, "cruze_creditsforspecifiedevents");
 	LoadTranslations("cruze_creditsforspecifiedevents.phrases");
 	
+	HookConVarChange(gc_sToggleChatMsg, OnSettingChanged);
 	HookConVarChange(gc_iAmountHeadshot, OnSettingChanged);
 	HookConVarChange(gc_iAmountKnife, OnSettingChanged);
 	HookConVarChange(gc_iAmountBackstab, OnSettingChanged);
@@ -91,7 +96,11 @@ public void OnPluginStart()
 
 public int OnSettingChanged(Handle convar, const char[] oldValue, const char[] newValue)
 {
-	if (convar == gc_iAmountHeadshot)
+	if (convar == gc_sToggleChatMsg)
+	{
+		g_sToggleChatMsg = !!StringToInt(newValue);
+	}
+	else if (convar == gc_iAmountHeadshot)
 	{
 		g_iAmountHeadshot = StringToInt(newValue);
 	}
@@ -142,6 +151,7 @@ public void OnConfigsExecuted()
 	gc_sTag = FindConVar("sm_store_chat_tag");
 	gc_sTag.GetString(g_sTag, sizeof(g_sTag));
 	
+	g_sToggleChatMsg		= GetConVarBool(gc_sToggleChatMsg);
 	g_iAmountHeadshot		= GetConVarInt(gc_iAmountHeadshot);
 	g_iAmountKnife			= GetConVarInt(gc_iAmountKnife);
 	g_iAmountBackstab		= GetConVarInt(gc_iAmountBackstab);
@@ -171,8 +181,11 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 		{
 			if(IsValidClient(attacker) && g_iAmountBackstab > 1)
 			{
-				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Backstab Knife{default} kill.", g_sTag, g_iAmountBackstab);
-				CPrintToChat(attacker, "%t", "Backstab Knife Kill", g_sTag, g_iAmountBackstab);
+				if(g_sToggleChatMsg)
+				{
+					//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Backstab Knife{default} kill.", g_sTag, g_iAmountBackstab);
+					CPrintToChat(attacker, "%t", "Backstab Knife Kill", g_sTag, g_iAmountBackstab);
+				}
 				Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountBackstab);
 			}
 		}
@@ -204,8 +217,11 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 		{
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountKnife);
 			
-			//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Knife{default} kill.", g_sTag, g_iAmountKnife);
-			CPrintToChat(attacker, "%t","Knife Kill", g_sTag, g_iAmountKnife);
+			if(g_sToggleChatMsg)
+			{
+				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Knife{default} kill.", g_sTag, g_iAmountKnife);
+				CPrintToChat(attacker, "%t","Knife Kill", g_sTag, g_iAmountKnife);
+			}
 		}
 	}
 	if(StrContains(weapon, "taser") != -1)
@@ -214,8 +230,11 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 		{
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountTaser);
 			
-			//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountTaser);
-			CPrintToChat(attacker, "%t","Taser Kill", g_sTag, g_iAmountTaser);
+			if(g_sToggleChatMsg)
+			{
+				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountTaser);
+				CPrintToChat(attacker, "%t","Taser Kill", g_sTag, g_iAmountTaser);
+			}
 		}
 	}
 	if (StrContains(weapon, "hegrenade") != -1)
@@ -224,8 +243,11 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 		{
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountHeGrenade);
 			
-			//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountHeGrenade);
-			CPrintToChat(attacker, "%t","HeGrenade Kill", g_sTag, g_iAmountHeGrenade);
+			if(g_sToggleChatMsg)
+			{
+				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountHeGrenade);
+				CPrintToChat(attacker, "%t","HeGrenade Kill", g_sTag, g_iAmountHeGrenade);
+			}
 		}
 	}
 	if (StrContains(weapon, "flashbang") != -1)
@@ -234,8 +256,11 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 		{
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountFlash);
 			
-			//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountFlash);
-			CPrintToChat(attacker, "%t","Flash Grenade Kill", g_sTag, g_iAmountFlash);
+			if(g_sToggleChatMsg)
+			{
+				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountFlash);
+				CPrintToChat(attacker, "%t","Flash Grenade Kill", g_sTag, g_iAmountFlash);
+			}
 		}
 	}
 	if (StrContains(weapon, "smokegrenade") != -1)
@@ -244,8 +269,11 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 		{
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountSmoke);
 			
-			//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountSmoke);
-			CPrintToChat(attacker, "%t","Smoke Grenade Kill", g_sTag, g_iAmountSmoke);
+			if(g_sToggleChatMsg)
+			{
+				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountSmoke);
+				CPrintToChat(attacker, "%t","Smoke Grenade Kill", g_sTag, g_iAmountSmoke);
+			}
 		}
 	}
 	if (StrContains(weapon, "molotov") != -1 || StrContains(weapon, "incgrenade") != -1 || StrContains(weapon, "inferno") != -1)
@@ -254,8 +282,11 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 		{
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountMolotov);
 			
-			//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountMolotov);
-			CPrintToChat(attacker, "%t","Molotov Grenade Kill", g_sTag, g_iAmountMolotov);
+			if(g_sToggleChatMsg)
+			{
+				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountMolotov);
+				CPrintToChat(attacker, "%t","Molotov Grenade Kill", g_sTag, g_iAmountMolotov);
+			}
 		}
 	}
 	if (StrContains(weapon, "decoy") != -1)
@@ -264,8 +295,11 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 		{
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountDecoy);
 			
-			//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountDecoy);
-			CPrintToChat(attacker, "%t","Decoy Grenade Kill", g_sTag, g_iAmountDecoy);
+			if(g_sToggleChatMsg)
+			{
+				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountDecoy);
+				CPrintToChat(attacker, "%t","Decoy Grenade Kill", g_sTag, g_iAmountDecoy);
+			}
 		}
 	}
 	if(GetEventBool(event, "headshot"))
@@ -275,8 +309,11 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountHeadshot);
 			
-			//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Headshot{default}.", g_sTag, g_iAmountHeadshot);
-			CPrintToChat(attacker, "%t","Headshot Kill", g_sTag, g_iAmountHeadshot);
+			if(g_sToggleChatMsg)
+			{
+				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Headshot{default}.", g_sTag, g_iAmountHeadshot);
+				CPrintToChat(attacker, "%t","Headshot Kill", g_sTag, g_iAmountHeadshot);
+			}
 		}
 	}
 	if(IsValidClient(victim) && IsValidClient(assister) && g_iAmountAssists > 1)
@@ -285,8 +322,11 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 			return;
 		Store_SetClientCredits(assister, Store_GetClientCredits(assister) + g_iAmountAssists);
 			
-		//CPrintToChat(assister, "%s You earned {green}%i{default} credits for {red}Assist{default} on a kill.", g_sTag, g_iAmountAssists);
-		CPrintToChat(assister, "%t","Assist Kill", g_sTag, g_iAmountAssists);
+		if(g_sToggleChatMsg)
+		{
+			//CPrintToChat(assister, "%s You earned {green}%i{default} credits for {red}Assist{default} on a kill.", g_sTag, g_iAmountAssists);
+			CPrintToChat(assister, "%t","Assist Kill", g_sTag, g_iAmountAssists);
+		}
 	}
 }
 public Action Event_RoundMVP(Handle event, const char[] name, bool dontBroadcast) 
@@ -296,12 +336,15 @@ public Action Event_RoundMVP(Handle event, const char[] name, bool dontBroadcast
 	{
 		Store_SetClientCredits(client, Store_GetClientCredits(client) + g_iAmountMVP);
 
-		char PlayerName[MAX_NAME_LENGTH];
-		GetClientName(client, PlayerName, sizeof(PlayerName));
-		//CPrintToChat(client, "%s You earned {green}%i{default} credits for being the {red}MVP{default}.", g_sTag, g_iAmountMVP);
-		CPrintToChat(client, "%t","MVP Kill", g_sTag, g_iAmountMVP);
-		//CPrintToChatAll("%s \x03%s\x01 earned {green}%i{default} credits for being {red}MVP{default}.", g_sTag, PlayerName, g_iAmountMVP);
-		CPrintToChatAll("%t","MVP Kill All", g_sTag, PlayerName, g_iAmountMVP);
+		if(g_sToggleChatMsg)
+		{
+			char PlayerName[MAX_NAME_LENGTH];
+			GetClientName(client, PlayerName, sizeof(PlayerName));
+			//CPrintToChat(client, "%s You earned {green}%i{default} credits for being the {red}MVP{default}.", g_sTag, g_iAmountMVP);
+			CPrintToChat(client, "%t","MVP Kill", g_sTag, g_iAmountMVP);
+			//CPrintToChatAll("%s \x03%s\x01 earned {green}%i{default} credits for being {red}MVP{default}.", g_sTag, PlayerName, g_iAmountMVP);
+			CPrintToChatAll("%t","MVP Kill All", g_sTag, PlayerName, g_iAmountMVP);
+		}
 	}
 }
 	
