@@ -42,7 +42,7 @@ public Plugin myinfo =
 	name				= 	"[Store] Credits for specified events",
 	author			= 	"Cruze",
 	description		= 	"Credits for hs, knife, backstab knife, zeus, grenade, mvp, assists",
-	version			= 	"1.13",
+	version			= 	"1.13.5",
 	url				= 	"http://steamcommunity.com/profiles/76561198132924835"
 }
 
@@ -206,8 +206,11 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	if(assister == attacker)
 		return;
 
-	if(GetClientTeam(victim) == GetClientTeam(attacker))
-		return;
+	if(IsValidClient(attacker) && IsValidClient(victim))
+	{
+		if(GetClientTeam(victim) == GetClientTeam(attacker))
+			return;
+	}
 
 	GetEventString(event, "weapon", weapon, sizeof(weapon));
 
