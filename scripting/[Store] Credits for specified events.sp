@@ -5,6 +5,7 @@
 
 #include <colorvariables>
 #include <sdkhooks>
+#include <cstrike>
 #include <store>
 
 ConVar gc_sToggleChatMsg,
@@ -18,7 +19,10 @@ ConVar gc_sToggleChatMsg,
 		gc_iAmountMolotov,
 		gc_iAmountDecoy,
 		gc_iAmountMVP,
+		gc_iAmountPlant,
+		gc_iAmountDefuse,
 		gc_iAmountAssists,
+		gc_iAmountWinner,
 		gc_sTag;
 
 char g_sTag[32], weapon[32];
@@ -35,14 +39,17 @@ int g_iAmountHeadshot,
 	g_iAmountMolotov,
 	g_iAmountDecoy,
 	g_iAmountMVP,
-	g_iAmountAssists;
+	g_iAmountPlant,
+	g_iAmountDefuse,
+	g_iAmountAssists,
+	g_iAmountWinner;
 
 public Plugin myinfo = 
 {
 	name				= 	"[Store] Credits for specified events",
 	author			= 	"Cruze",
 	description		= 	"Credits for hs, knife, backstab knife, zeus, grenade, mvp, assists",
-	version			= 	"1.13.5",
+	version			= 	"1.14",
 	url				= 	"http://steamcommunity.com/profiles/76561198132924835"
 }
 
@@ -63,11 +70,14 @@ public void OnPluginStart()
 	gc_iAmountMolotov		=	CreateConVar("sm_cse_molotovamount", 	"5", 		"Amount of credits to give to users molotov/incendiary killing enemy. 0 to disable.");
 	gc_iAmountDecoy			=	CreateConVar("sm_cse_decoyamount", 		"50", 		"Amount of credits to give to users decoy killing enemy. 0 to disable.");
 	gc_iAmountMVP			=	CreateConVar("sm_cse_mvpamount", 		"5", 		"Amount of credits to give to user who gets mvp. 0 to disable.");
+	gc_iAmountPlant			=	CreateConVar("sm_cse_plantamount", 		"3", 		"Amount of credits to give to user who plant c4. 0 to disable.");
+	gc_iAmountDefuse		=	CreateConVar("sm_cse_defuseamount", 		"3", 		"Amount of credits to give to user who defuse c4. 0 to disable.");
 	gc_iAmountAssists		=	CreateConVar("sm_cse_assistsamount", 	"3", 		"Amount of credits to give to users who get assists on a kill. 0 to disable.");
+	gc_iAmountWinner		=	CreateConVar("sm_cse_winneramount", 		"3", 		"Amount of credits to give to users who won round. 0 to disable.");
 	
 	AutoExecConfig(true, "cruze_creditsforspecifiedevents");
 	LoadTranslations("cruze_creditsforspecifiedevents.phrases");
-	
+
 	HookConVarChange(gc_sToggleChatMsg, OnSettingChanged);
 	HookConVarChange(gc_iAmountHeadshot, OnSettingChanged);
 	HookConVarChange(gc_iAmountKnife, OnSettingChanged);
@@ -79,10 +89,16 @@ public void OnPluginStart()
 	HookConVarChange(gc_iAmountMolotov, OnSettingChanged);
 	HookConVarChange(gc_iAmountDecoy, OnSettingChanged);
 	HookConVarChange(gc_iAmountMVP, OnSettingChanged);
+	HookConVarChange(gc_iAmountPlant, OnSettingChanged);
+	HookConVarChange(gc_iAmountDefuse, OnSettingChanged);
 	HookConVarChange(gc_iAmountAssists, OnSettingChanged);
+	HookConVarChange(gc_iAmountWinner, OnSettingChanged);
 
 	HookEvent("player_death", OnPlayerDeath);
+	HookEvent("round_end", RoundEnd);
 	HookEventEx("round_mvp", Event_RoundMVP);
+	HookEventEx("bomb_planted", Event_BombPlanted);
+	HookEventEx("bomb_defused", Event_BombDefused);
 	
 	for (int client = 1; client <= MaxClients; client++)
 	{ 
@@ -96,6 +112,9 @@ public void OnPluginStart()
 
 public int OnSettingChanged(Handle convar, const char[] oldValue, const char[] newValue)
 {
+	if (StrEqual(oldValue, newValue, true))
+        return;
+	
 	if (convar == gc_sToggleChatMsg)
 	{
 		g_sToggleChatMsg = !!StringToInt(newValue);
@@ -140,9 +159,21 @@ public int OnSettingChanged(Handle convar, const char[] oldValue, const char[] n
 	{
 		g_iAmountMVP = StringToInt(newValue);
 	}
+	else if (convar == gc_iAmountPlant)
+	{
+		g_iAmountPlant = StringToInt(newValue);
+	}
+	else if (convar == gc_iAmountDefuse)
+	{
+		g_iAmountDefuse = StringToInt(newValue);
+	}
 	else if (convar == gc_iAmountAssists)
 	{
 		g_iAmountAssists = StringToInt(newValue);
+	}
+	else if (convar == gc_iAmountWinner)
+	{
+		g_iAmountWinner	= StringToInt(newValue);
 	}
 }
 
@@ -162,7 +193,10 @@ public void OnConfigsExecuted()
 	g_iAmountMolotov		= GetConVarInt(gc_iAmountMolotov);
 	g_iAmountDecoy			= GetConVarInt(gc_iAmountDecoy);
 	g_iAmountMVP				= GetConVarInt(gc_iAmountMVP);
+	g_iAmountPlant			= GetConVarInt(gc_iAmountPlant);
+	g_iAmountDefuse			= GetConVarInt(gc_iAmountDefuse);
 	g_iAmountAssists		= GetConVarInt(gc_iAmountAssists);
+	g_iAmountWinner			= GetConVarInt(gc_iAmountWinner);
 }
 
 public void OnClientPutInServer(int client)
@@ -179,7 +213,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 	{
 		if (damage > 99.0 && (damagetype & DMG_SLASH) == DMG_SLASH)
 		{
-			if(IsValidClient(attacker) && g_iAmountBackstab > 1)
+			if(IsValidClient(attacker) && g_iAmountBackstab > 0)
 			{
 				if(g_sToggleChatMsg)
 				{
@@ -216,7 +250,7 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 
 	if(StrContains(weapon, "knife") != -1 || StrContains(weapon, "knife_default_ct") != -1 || StrContains(weapon, "knife_default_t") != -1 || StrContains(weapon, "knife_t") != -1 || StrContains(weapon, "knifegg") != -1 || StrContains(weapon, "knife_flip") != -1 || StrContains(weapon, "knife_gut") != -1 || StrContains(weapon, "knife_karambit") != -1 || StrContains(weapon, "bayonet") != -1 || StrContains(weapon, "knife_m9_bayonet") != -1 || StrContains(weapon, "knife_butterfly") != -1 || StrContains(weapon, "knife_tactical") != -1 || StrContains(weapon, "knife_falchion") != -1 || StrContains(weapon, "knife_push") != -1 || StrContains(weapon, "knife_survival_bowie") != -1 || StrContains(weapon, "knife_ursus") != -1 || StrContains(weapon, "knife_gypsy_jackknife") != -1 || StrContains(weapon, "knife_stiletto") != -1 || StrContains(weapon, "knife_widowmaker") != -1)
 	{
-		if(IsValidClient(attacker) && g_iAmountKnife > 1)
+		if(IsValidClient(attacker) && g_iAmountKnife > 0)
 		{
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountKnife);
 			
@@ -229,7 +263,7 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	}
 	if(StrContains(weapon, "taser") != -1)
 	{
-		if(IsValidClient(attacker) && g_iAmountTaser > 1)
+		if(IsValidClient(attacker) && g_iAmountTaser > 0)
 		{
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountTaser);
 			
@@ -242,7 +276,7 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	}
 	if (StrContains(weapon, "hegrenade") != -1)
 	{
-		if(IsValidClient(attacker) &&  g_iAmountHeGrenade > 1)
+		if(IsValidClient(attacker) &&  g_iAmountHeGrenade > 0)
 		{
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountHeGrenade);
 			
@@ -255,7 +289,7 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	}
 	if (StrContains(weapon, "flashbang") != -1)
 	{
-		if(IsValidClient(attacker) &&  g_iAmountFlash > 1)
+		if(IsValidClient(attacker) &&  g_iAmountFlash > 0)
 		{
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountFlash);
 			
@@ -268,7 +302,7 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	}
 	if (StrContains(weapon, "smokegrenade") != -1)
 	{
-		if(IsValidClient(attacker) &&  g_iAmountSmoke > 1)
+		if(IsValidClient(attacker) &&  g_iAmountSmoke > 0)
 		{
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountSmoke);
 			
@@ -281,7 +315,7 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	}
 	if (StrContains(weapon, "molotov") != -1 || StrContains(weapon, "incgrenade") != -1 || StrContains(weapon, "inferno") != -1)
 	{
-		if(IsValidClient(attacker) &&  g_iAmountMolotov > 1)
+		if(IsValidClient(attacker) &&  g_iAmountMolotov > 0)
 		{
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountMolotov);
 			
@@ -294,7 +328,7 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	}
 	if (StrContains(weapon, "decoy") != -1)
 	{
-		if(IsValidClient(attacker) &&  g_iAmountDecoy > 1)
+		if(IsValidClient(attacker) &&  g_iAmountDecoy > 0)
 		{
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountDecoy);
 			
@@ -307,7 +341,7 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	}
 	if(GetEventBool(event, "headshot"))
 	{
-		if(IsValidClient(attacker) && g_iAmountHeadshot > 1)
+		if(IsValidClient(attacker) && g_iAmountHeadshot > 0)
 		{
 	
 			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountHeadshot);
@@ -319,7 +353,7 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 			}
 		}
 	}
-	if(IsValidClient(victim) && IsValidClient(assister) && g_iAmountAssists > 1)
+	if(IsValidClient(victim) && IsValidClient(assister) && g_iAmountAssists > 0)
 	{
 		if(GetClientTeam(assister) == GetClientTeam(victim))
 			return;
@@ -332,10 +366,39 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 		}
 	}
 }
+
+public void RoundEnd(Event event, const char[] name, bool dontBroadcast)
+{
+	int winner = GetEventInt(event, "winner");
+	if(g_iAmountWinner > 0)
+	{
+		for(int i = 1; i <= MaxClients; i++) if(IsValidClient(i, true, true))
+		{
+			if(winner == CS_TEAM_CT && GetClientTeam(i) == CS_TEAM_CT)
+			{
+				Store_SetClientCredits(i, Store_GetClientCredits(i) + g_iAmountWinner);
+				if(g_sToggleChatMsg)
+				{
+					//CPrintToChat(i, "%s You earned {green}%i{default} credits for winning this round.", g_sTag, g_iAmountWinner);
+					CPrintToChat(i, "%t","Winner Team", g_sTag, g_iAmountWinner);
+				}
+			}
+			if(winner == CS_TEAM_T && GetClientTeam(i) == CS_TEAM_T)
+			{
+				Store_SetClientCredits(i, Store_GetClientCredits(i) + g_iAmountWinner);
+				if(g_sToggleChatMsg)
+				{
+					//CPrintToChat(i, "%s You earned {green}%i{default} credits for winning this round.", g_sTag, g_iAmountWinner);
+					CPrintToChat(i, "%t","Winner Team", g_sTag, g_iAmountWinner);
+				}
+			}
+		}
+	}
+}
 public Action Event_RoundMVP(Handle event, const char[] name, bool dontBroadcast) 
 {
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if(IsValidClient(client) && g_iAmountMVP > 1)
+	if(IsValidClient(client) && g_iAmountMVP > 0)
 	{
 		Store_SetClientCredits(client, Store_GetClientCredits(client) + g_iAmountMVP);
 
@@ -348,6 +411,38 @@ public Action Event_RoundMVP(Handle event, const char[] name, bool dontBroadcast
 			//CPrintToChatAll("%s \x03%s\x01 earned {green}%i{default} credits for being {red}MVP{default}.", g_sTag, PlayerName, g_iAmountMVP);
 			CPrintToChatAll("%t","MVP Kill All", g_sTag, PlayerName, g_iAmountMVP);
 		}
+	}
+}
+public Action Event_BombPlanted(Handle event, const char[] name, bool dontBroadcast)
+{
+	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+	if (IsValidClient(client) && g_iAmountPlant > 0)
+	{
+		for (int i = 1; i <= MaxClients; i++) if(IsClientInGame(i))
+		{
+			Store_SetClientCredits(i, Store_GetClientCredits(i) + g_iAmountPlant);
+			if(g_sToggleChatMsg)
+			{
+				//CPrintToChat(i, "%s You earned {green}%i{default} credits for planting the C4.", g_sTag, g_iAmountPlant);
+				CPrintToChat(i, "%t", "Plant Creds", g_sTag, g_iAmountPlant);
+			}
+		}	
+	}
+}
+public Action Event_BombDefused(Handle event, const char[] name, bool dontBroadcast)
+{
+	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+	if (IsValidClient(client) && g_iAmountDefuse > 0)
+	{
+		for (int i = 1; i <= MaxClients; i++) if(IsClientInGame(i))
+		{
+			Store_SetClientCredits(i, Store_GetClientCredits(i) + g_iAmountDefuse);
+			if(g_sToggleChatMsg)
+			{
+				//CPrintToChat(i, "%s You earned {green}%i{default} credits for defusing the C4.", g_sTag, g_iAmountDefuse);
+				CPrintToChat(i, "%t", "Defuse Creds", g_sTag, g_iAmountDefuse);
+			}
+		}	
 	}
 }
 	
