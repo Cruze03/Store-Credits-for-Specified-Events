@@ -60,5 +60,20 @@
 		"#format"	"{1:s},{2:s},{3:i}"
 		"en" 		"{1} {purple}{2}{default} earned {green}{3}{default} credits for being {red}MVP{default}."
 	}
+	"Plant Creds"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en" 		"{1} You earned {green}{2}{default} credits for planting the C4."
+	}
+	"Defuse Creds"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en" 		"{1} You earned {green}{2}{default} credits for defusing the C4."
+	}
+	"Winner Team"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en" 		"{1} You earned {green}{2}{default} credits for winning this round."
+	}
 	
 }
