@@ -1,7 +1,6 @@
 /* Thanks Kento for public release of Rankme Kento Edition. Took help from his plugins's code"*/
 
 #pragma semicolon 1
-#pragma newdecls required
 
 #include <multicolors>
 #include <sdkhooks>
@@ -49,7 +48,7 @@ public Plugin myinfo =
 	name			= 	"[Store] Credits for specified events",
 	author			= 	"Cruze",
 	description		= 	"Credits for hs, knife, backstab knife, zeus, grenade, mvp, assists",
-	version			= 	"1.15",
+	version			= 	"1.16",
 	url				= 	"http://steamcommunity.com/profiles/76561198132924835"
 }
 
@@ -251,7 +250,7 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	char weapon[64];
 	GetEventString(event, "weapon", weapon, sizeof(weapon));
 
-	if(StrContains(weapon, "knife") != -1 || StrContains(weapon, "knife_default_ct") != -1 || StrContains(weapon, "knife_default_t") != -1 || StrContains(weapon, "knife_t") != -1 || StrContains(weapon, "knifegg") != -1 || StrContains(weapon, "knife_flip") != -1 || StrContains(weapon, "knife_gut") != -1 || StrContains(weapon, "knife_karambit") != -1 || StrContains(weapon, "bayonet") != -1 || StrContains(weapon, "knife_m9_bayonet") != -1 || StrContains(weapon, "knife_butterfly") != -1 || StrContains(weapon, "knife_tactical") != -1 || StrContains(weapon, "knife_falchion") != -1 || StrContains(weapon, "knife_push") != -1 || StrContains(weapon, "knife_survival_bowie") != -1 || StrContains(weapon, "knife_ursus") != -1 || StrContains(weapon, "knife_gypsy_jackknife") != -1 || StrContains(weapon, "knife_stiletto") != -1 || StrContains(weapon, "knife_widowmaker") != -1)
+	if(StrContains(weapon, "knife", false) != -1 || StrContains(weapon, "bayonet", false) != -1 || StrContains(weapon, "fists", false) != -1 || StrContains(weapon, "axe", false) != -1 || StrContains(weapon, "hammer", false) != -1 || StrContains(weapon, "spanner", false) != -1 || StrContains(weapon, "melee", false) != -1)
 	{
 		if(g_iAmountKnife > 0)
 		{
