@@ -2,3 +2,5 @@
 
 
 ## https://forums.alliedmods.net/showthread.php?t=310828
+
+Haven't tested but should work!
