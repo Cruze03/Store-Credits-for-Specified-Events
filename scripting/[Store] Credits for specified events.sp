@@ -21,8 +21,7 @@ ConVar gc_bToggleChatMsg,
 		gc_iAmountPlant,
 		gc_iAmountDefuse,
 		gc_iAmountAssists,
-		gc_iAmountWinner,
-		gc_sTag;
+		gc_iAmountWinner;
 
 char g_sTag[100];
 
@@ -45,10 +44,10 @@ int g_iAmountHeadshot,
 
 public Plugin myinfo = 
 {
-	name			= 	"[Store] Credits for specified events",
+	name			= 	"[Store][Kxnrl] Credits for specified events",
 	author			= 	"Cruze",
 	description		= 	"Credits for hs, knife, backstab knife, zeus, grenade, mvp, assists",
-	version			= 	"1.16",
+	version			= 	"1.0",
 	url				= 	"http://steamcommunity.com/profiles/76561198132924835"
 }
 
@@ -176,8 +175,7 @@ public int OnSettingChanged(Handle convar, const char[] oldValue, const char[] n
 
 public void OnConfigsExecuted()
 {
-	gc_sTag = FindConVar("sm_store_chat_tag");
-	gc_sTag.GetString(g_sTag, sizeof(g_sTag));
+	strcopy(g_sTag, sizeof(g_sTag), "[{greenStore{default}]");
 	
 	g_bToggleChatMsg		= GetConVarBool(gc_bToggleChatMsg);
 	g_iAmountHeadshot		= GetConVarInt(gc_iAmountHeadshot);
@@ -213,7 +211,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 		{
 			if(g_iAmountBackstab > 0)
 			{
-				Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountBackstab);
+				Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountBackstab, "Backstab Knife Kill");
 				if(g_bToggleChatMsg)
 				{
 					//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Backstab Knife{default} kill.", g_sTag, g_iAmountBackstab);
@@ -254,7 +252,7 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	{
 		if(g_iAmountKnife > 0)
 		{
-			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountKnife);
+			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountKnife, "Knife Kill");
 			if(g_bToggleChatMsg)
 			{
 				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Knife{default} kill.", g_sTag, g_iAmountKnife);
@@ -266,7 +264,7 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	{
 		if(g_iAmountTaser > 0)
 		{
-			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountTaser);
+			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountTaser, "Taser Kill");
 			if(g_bToggleChatMsg)
 			{
 				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountTaser);
@@ -278,7 +276,7 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	{
 		if(g_iAmountHeGrenade > 0)
 		{
-			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountHeGrenade);
+			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountHeGrenade, "HeGrenade Kill");
 			if(g_bToggleChatMsg)
 			{
 				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountHeGrenade);
@@ -290,7 +288,7 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	{
 		if(g_iAmountFlash > 0)
 		{
-			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountFlash);
+			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountFlash, "Flash Grenade Kill");
 			if(g_bToggleChatMsg)
 			{
 				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountFlash);
@@ -302,7 +300,7 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	{
 		if(g_iAmountSmoke > 0)
 		{
-			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountSmoke);
+			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountSmoke, "Smoke Grenade Kill");
 			if(g_bToggleChatMsg)
 			{
 				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountSmoke);
@@ -314,7 +312,7 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	{
 		if(g_iAmountMolotov > 0)
 		{
-			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountMolotov);
+			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountMolotov, "Molotov Grenade Kill");
 			if(g_bToggleChatMsg)
 			{
 				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountMolotov);
@@ -326,7 +324,7 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	{
 		if(g_iAmountDecoy > 0)
 		{
-			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountDecoy);
+			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountDecoy, "Decoy Grenade Kill");
 			if(g_bToggleChatMsg)
 			{
 				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Zeus{default} kill.", g_sTag, g_iAmountDecoy);
@@ -339,7 +337,7 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 		if(g_iAmountHeadshot > 0)
 		{
 	
-			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountHeadshot);
+			Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountHeadshot, "Headshot Kill");
 			if(g_bToggleChatMsg)
 			{
 				//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for {red}Headshot{default}.", g_sTag, g_iAmountHeadshot);
@@ -352,7 +350,7 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 		if(GetClientTeam(assister) == GetClientTeam(victim))
 			return Plugin_Continue;
 
-		Store_SetClientCredits(assister, Store_GetClientCredits(assister) + g_iAmountAssists);
+		Store_SetClientCredits(assister, Store_GetClientCredits(assister) + g_iAmountAssists, "Assist Kill");
 		if(g_bToggleChatMsg)
 		{
 			//CPrintToChat(assister, "%s You earned {green}%i{default} credits for {red}Assist{default} on a kill.", g_sTag, g_iAmountAssists);
@@ -371,7 +369,7 @@ public Action RoundEnd(Event event, const char[] name, bool dontBroadcast)
 		{
 			if(GetClientTeam(i) == winner)
 			{
-				Store_SetClientCredits(i, Store_GetClientCredits(i) + g_iAmountWinner);
+				Store_SetClientCredits(i, Store_GetClientCredits(i) + g_iAmountWinner, "Winner Team");
 				if(g_bToggleChatMsg)
 				{
 					//CPrintToChat(i, "%s You earned {green}%i{default} credits for winning this round.", g_sTag, g_iAmountWinner);
@@ -391,7 +389,7 @@ public Action Event_RoundMVP(Handle event, const char[] name, bool dontBroadcast
 	}
 	if(g_iAmountMVP > 0)
 	{
-		Store_SetClientCredits(client, Store_GetClientCredits(client) + g_iAmountMVP);
+		Store_SetClientCredits(client, Store_GetClientCredits(client) + g_iAmountMVP, "MVP");
 		if(g_bToggleChatMsg)
 		{
 			//CPrintToChat(client, "%s You earned {green}%i{default} credits for being the {red}MVP{default}.", g_sTag, g_iAmountMVP);
@@ -413,7 +411,7 @@ public Action Event_BombPlanted(Handle event, const char[] name, bool dontBroadc
 	{
 		for (int i = 1; i <= MaxClients; i++) if(IsClientInGame(i))
 		{
-			Store_SetClientCredits(i, Store_GetClientCredits(i) + g_iAmountPlant);
+			Store_SetClientCredits(i, Store_GetClientCredits(i) + g_iAmountPlant, "Bomb Plant");
 			if(g_bToggleChatMsg)
 			{
 				//CPrintToChat(i, "%s You earned {green}%i{default} credits for planting the C4.", g_sTag, g_iAmountPlant);
@@ -434,7 +432,7 @@ public Action Event_BombDefused(Handle event, const char[] name, bool dontBroadc
 	{
 		for (int i = 1; i <= MaxClients; i++) if(IsClientInGame(i))
 		{
-			Store_SetClientCredits(i, Store_GetClientCredits(i) + g_iAmountDefuse);
+			Store_SetClientCredits(i, Store_GetClientCredits(i) + g_iAmountDefuse, "Bomb Defuse");
 			if(g_bToggleChatMsg)
 			{
 				//CPrintToChat(i, "%s You earned {green}%i{default} credits for defusing the C4.", g_sTag, g_iAmountDefuse);
