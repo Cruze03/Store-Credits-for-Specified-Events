@@ -8,6 +8,7 @@
 #include <store>
 
 ConVar gc_bToggleChatMsg,
+		gc_iAmountKill,
 		gc_iAmountHeadshot, 
 		gc_iAmountKnife,
 		gc_iAmountBackstab,
@@ -27,7 +28,8 @@ char g_sTag[100];
 
 bool g_bToggleChatMsg;
 	
-int g_iAmountHeadshot,
+int g_iAmountKill,
+	g_iAmountHeadshot,
 	g_iAmountKnife,
 	g_iAmountBackstab,
 	g_iAmountTaser,
@@ -47,7 +49,7 @@ public Plugin myinfo =
 	name			= 	"[Store][Kxnrl] Credits for specified events",
 	author			= 	"Cruze",
 	description		= 	"Credits for hs, knife, backstab knife, zeus, grenade, mvp, assists",
-	version			= 	"1.0",
+	version			= 	"1.1",
 	url				= 	"http://steamcommunity.com/profiles/76561198132924835"
 }
 
@@ -58,6 +60,7 @@ public void OnPluginStart()
 		SetFailState("Plugin supports CSS and CS:GO only.");
 	
 	gc_bToggleChatMsg		=	CreateConVar("sm_cse_chatmsg", 			"1", 		"Print credits messages to chat? 0 to disable.");
+	gc_iAmountKill			=	CreateConVar("sm_cse_killamount", 		"1", 		"Amount of credits to give to users killing enemy. 0 to disable.");
 	gc_iAmountHeadshot		=	CreateConVar("sm_cse_hsamount", 		"3", 		"Amount of credits to give to users headshotting enemy. 0 to disable.");
 	gc_iAmountKnife			=	CreateConVar("sm_cse_knifeamount", 		"10", 		"Amount of credits to give to users knifing enemy. 0 to disable.");
 	gc_iAmountBackstab		=	CreateConVar("sm_cse_backstabamount", 	"3", 		"Amount of credits to give to users backstab knifing enemy. 0 to disable.");
@@ -77,6 +80,7 @@ public void OnPluginStart()
 	LoadTranslations("cruze_creditsforspecifiedevents.phrases");
 
 	HookConVarChange(gc_bToggleChatMsg, OnSettingChanged);
+	HookConVarChange(gc_iAmountKill, OnSettingChanged);
 	HookConVarChange(gc_iAmountHeadshot, OnSettingChanged);
 	HookConVarChange(gc_iAmountKnife, OnSettingChanged);
 	HookConVarChange(gc_iAmountBackstab, OnSettingChanged);
@@ -114,6 +118,10 @@ public int OnSettingChanged(Handle convar, const char[] oldValue, const char[] n
 	if (convar == gc_bToggleChatMsg)
 	{
 		g_bToggleChatMsg = !!StringToInt(newValue);
+	}
+	else if(convar == gc_iAmountKill)
+	{
+		g_iAmountKill = StringToInt(newValue);
 	}
 	else if (convar == gc_iAmountHeadshot)
 	{
@@ -175,9 +183,10 @@ public int OnSettingChanged(Handle convar, const char[] oldValue, const char[] n
 
 public void OnConfigsExecuted()
 {
-	strcopy(g_sTag, sizeof(g_sTag), "[{greenStore{default}]");
+	strcopy(g_sTag, sizeof(g_sTag), "[{green}Store{default}]");
 	
 	g_bToggleChatMsg		= GetConVarBool(gc_bToggleChatMsg);
+	g_iAmountKill			= GetConVarInt(gc_iAmountKill);
 	g_iAmountHeadshot		= GetConVarInt(gc_iAmountHeadshot);
 	g_iAmountKnife			= GetConVarInt(gc_iAmountKnife);
 	g_iAmountBackstab		= GetConVarInt(gc_iAmountBackstab);
@@ -243,6 +252,16 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	if(GetClientTeam(victim) == GetClientTeam(attacker))
 	{
 		return Plugin_Continue;
+	}
+	
+	if(g_iAmountKill > 0)
+	{
+		Store_SetClientCredits(attacker, Store_GetClientCredits(attacker) + g_iAmountKill, "Kill");
+		if(g_bToggleChatMsg)
+		{
+			//CPrintToChat(attacker, "%s You earned {green}%i{default} credits for killing the enemy.", g_sTag, g_iAmountKill);
+			CPrintToChat(attacker, "%t","Kill", g_sTag, g_iAmountKill);
+		}
 	}
 
 	char weapon[64];
