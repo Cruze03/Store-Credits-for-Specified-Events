@@ -1,5 +1,10 @@
 "Phrases"
 {
+	"Kill"
+	{
+		"#format"	"{1:s},{2:i}"
+		"en"		"{1} You earned {green}{2}{default} credits for killing the enemy."
+	}
 	"Knife Kill"
 	{
 		"#format"	"{1:s},{2:i}"
