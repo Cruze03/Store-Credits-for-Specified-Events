@@ -48,7 +48,7 @@ public Plugin myinfo =
 	name			= 	"[Store] Credits for specified events",
 	author			= 	"Cruze",
 	description		= 	"Credits for hs, knife, backstab knife, zeus, grenade, mvp, assists",
-	version			= 	"1.16",
+	version			= 	"1.17",
 	url				= 	"http://steamcommunity.com/profiles/76561198132924835"
 }
 
@@ -411,15 +411,12 @@ public Action Event_BombPlanted(Handle event, const char[] name, bool dontBroadc
 	}
 	if(g_iAmountPlant > 0)
 	{
-		for (int i = 1; i <= MaxClients; i++) if(IsClientInGame(i))
+		Store_SetClientCredits(client, Store_GetClientCredits(client) + g_iAmountPlant);
+		if(g_bToggleChatMsg)
 		{
-			Store_SetClientCredits(i, Store_GetClientCredits(i) + g_iAmountPlant);
-			if(g_bToggleChatMsg)
-			{
-				//CPrintToChat(i, "%s You earned {green}%i{default} credits for planting the C4.", g_sTag, g_iAmountPlant);
-				CPrintToChat(i, "%t", "Plant Creds", g_sTag, g_iAmountPlant);
-			}
-		}	
+			//CPrintToChat(client, "%s You earned {green}%i{default} credits for planting the C4.", g_sTag, g_iAmountPlant);
+			CPrintToChat(client, "%t", "Plant Creds", g_sTag, g_iAmountPlant);
+		}
 	}
 	return Plugin_Continue;
 }
@@ -432,15 +429,12 @@ public Action Event_BombDefused(Handle event, const char[] name, bool dontBroadc
 	}
 	if(g_iAmountDefuse > 0)
 	{
-		for (int i = 1; i <= MaxClients; i++) if(IsClientInGame(i))
+		Store_SetClientCredits(client, Store_GetClientCredits(client) + g_iAmountDefuse);
+		if(g_bToggleChatMsg)
 		{
-			Store_SetClientCredits(i, Store_GetClientCredits(i) + g_iAmountDefuse);
-			if(g_bToggleChatMsg)
-			{
-				//CPrintToChat(i, "%s You earned {green}%i{default} credits for defusing the C4.", g_sTag, g_iAmountDefuse);
-				CPrintToChat(i, "%t", "Defuse Creds", g_sTag, g_iAmountDefuse);
-			}
-		}	
+			//CPrintToChat(client, "%s You earned {green}%i{default} credits for defusing the C4.", g_sTag, g_iAmountDefuse);
+			CPrintToChat(client, "%t", "Defuse Creds", g_sTag, g_iAmountDefuse);
+		}
 	}
 	return Plugin_Continue;
 }
